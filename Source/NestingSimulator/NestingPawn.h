@@ -19,6 +19,9 @@ public:
 	class USphereComponent* Sphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UCameraComponent* Camera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -38,8 +41,15 @@ public:
 	// Translate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
 	float TurnSpeed = 0.1f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
+	float WheelSpeed = 10.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
+	FVector2D CurrentMousePosition;
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnRight(float Value);
-	void ZoomIn(float Value);
+	void ZoomIn();
+	void ZoomOut();
+	void CameraRotationAround();
+	void SetCurrentMousePosition();
 };

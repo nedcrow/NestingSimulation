@@ -2,9 +2,13 @@
 
 
 #include "NestingPawn.h"
+#include "NestingGS.h"
+#include "NestingPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ANestingPawn::ANestingPawn()
@@ -15,8 +19,13 @@ ANestingPawn::ANestingPawn()
 	Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	RootComponent = Sphere;
 
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(Sphere);
+	SpringArm->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+	SpringArm->TargetArmLength = 3000.0f;
+
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(Sphere);
+	Camera->SetupAttachment(SpringArm);
 
 	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
 	Movement->UpdatedComponent = RootComponent;
@@ -29,7 +38,7 @@ void ANestingPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	RootComponent->SetRelativeLocation(FVector(.0f, .0f, 300.0f));
-	Camera->SetRelativeRotation(FRotator(-45.0f, .0f, .0f));
+	RootComponent->SetRelativeRotation(FRotator(.0f, 90.0f, .0f));
 }
 
 // Called every frame
@@ -47,7 +56,10 @@ void ANestingPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANestingPawn::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANestingPawn::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("TurnRight"), this, &ANestingPawn::TurnRight);
-	PlayerInputComponent->BindAxis(TEXT("ZoomIn"), this, &ANestingPawn::ZoomIn);
+	PlayerInputComponent->BindAction(TEXT("ZoomIn"), IE_Released, this, &ANestingPawn::ZoomIn);
+	PlayerInputComponent->BindAction(TEXT("ZoomOut"), IE_Released, this, &ANestingPawn::ZoomOut);
+	PlayerInputComponent->BindAction(TEXT("CameraRotationAround"), IE_Pressed, this, &ANestingPawn::SetCurrentMousePosition);
+	PlayerInputComponent->BindAction(TEXT("CameraRotationAround"), IE_Released, this, &ANestingPawn::CameraRotationAround);
 }
 
 void ANestingPawn::MoveForward(float Value)
@@ -82,14 +94,40 @@ void ANestingPawn::TurnRight(float Value)
 	AddControllerYawInput(Value * TurnSpeed);
 }
 
-void ANestingPawn::ZoomIn(float Value)
+void ANestingPawn::ZoomIn()
 {
-	if (Value == 0)
-	{
-		return;
-	}
+	if (SpringArm->TargetArmLength - WheelSpeed <= 300) SpringArm->TargetArmLength = 300;
 
-	FVector ControlDownVector2D = GetControlRotation().RotateVector(FVector::DownVector).GetSafeNormal2D();
-	AddMovementInput(ControlDownVector2D, Value * 1000.0f);
+	SpringArm->TargetArmLength -= WheelSpeed;
 }
 
+void ANestingPawn::ZoomOut()
+{
+	//if (SpringArm->TargetArmLength + WheelSpeed >= 3000) SpringArm->TargetArmLength = 3000;
+	SpringArm->TargetArmLength += WheelSpeed;
+}
+
+void ANestingPawn::CameraRotationAround()
+{
+	ANestingPlayerController* PC = Cast<ANestingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PC) {
+		FVector2D tempMousePosition;
+		int32 x;
+		int32 y;
+		PC->GetViewportSize(x,y);
+		PC->GetLocalPlayer()->ViewportClient->GetMousePosition(tempMousePosition);
+		RootComponent->SetRelativeRotation(FRotator(
+			tempMousePosition.X - CurrentMousePosition.X / x,
+			y,
+			0.0f
+		));
+	}
+}
+
+void ANestingPawn::SetCurrentMousePosition()
+{
+	ANestingPlayerController* PC = Cast<ANestingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PC) {
+		PC->GetLocalPlayer()->ViewportClient->GetMousePosition(CurrentMousePosition);
+	}
+}

@@ -13,5 +13,5 @@ UCLASS()
 class NESTINGSIMULATOR_API ANestingGM : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 };
