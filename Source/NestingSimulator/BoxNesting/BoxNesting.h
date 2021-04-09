@@ -6,6 +6,12 @@
 #include "GameFramework/Actor.h"
 #include "BoxNesting.generated.h"
 
+UENUM(BlueprintType)
+enum class EBoxAlign : uint8 {
+	E_Top = 0	UMETA(DisplayName = "AlignTop"),
+	E_Left = 1	UMETA(DisplayName = "AlignLeft"),
+};
+
 USTRUCT(Atomic, BlueprintType)
 struct FRowStruct {
 	GENERATED_BODY()
@@ -46,14 +52,19 @@ public:
 protected:
 	virtual void PostRegisterAllComponents() override;
 	virtual void BeginPlay() override;
+	float Unit = 100;
+	int BeforeStartPoint[2] = {0,0};
+	FVector2D BeforeBoxSize;
+	FBoardStruct BeforeBoard;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Centimeter
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-	float Unit = 100;
+	void ResetUnit();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_BoxAlign")
+	EBoxAlign eAlign = EBoxAlign::E_Top;
 
 #pragma region Board
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
@@ -88,6 +99,9 @@ public:
 	/*이 프로미터가 활성화되면 걸러진 상자들을 따로 배치한다.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
 	bool bCanAutoFiltering = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
+	bool bCanBoxRotating = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
 	bool bCanTypeGrouping = false;

@@ -7,6 +7,9 @@
 #include "Engine/DataTable.h"
 //#include "UObject/ConstructorHelpers.h"
 #include "BoxDataTable.h"
+#include "../NestingGS.h"
+#include "Kismet/GameplayStatics.h"
+
 
 // Sets default values
 ABoxNesting::ABoxNesting()
@@ -28,13 +31,19 @@ ABoxNesting::ABoxNesting()
 void ABoxNesting::PostRegisterAllComponents()
 {
 	Super::PostRegisterAllComponents();
+#if WITH_EDITOR
+	ResetUnit();
 	CreateBoard(BoardSizeX, BoardSizeY, true);
 	NestBox();
+#endif
 }
 
 void ABoxNesting::BeginPlay()
 {
 	Super::BeginPlay();
+	ResetUnit();
+	CreateBoard(BoardSizeX, BoardSizeY, true);
+	NestBox();
 }
 
 // Called every frame
@@ -42,6 +51,13 @@ void ABoxNesting::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+/* must, this function have call first.*/
+void ABoxNesting::ResetUnit()
+{
+	ANestingGS* GS = Cast<ANestingGS>(UGameplayStatics::GetGameState(GetWorld()));
+	if(GS) Unit = GS->Unit;
 }
 
 void ABoxNesting::CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset) {
@@ -91,7 +107,11 @@ void ABoxNesting::CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset) {
 void ABoxNesting::AddBoard() {
 
 	CreateBoard(BoardSizeX, BoardSizeY, false);
-	UE_LOG(LogTemp, Warning, TEXT("Add Board"));
+	ANestingGS* GS = Cast<ANestingGS>(UGameplayStatics::GetGameState(GetWorld()));
+	if (GS) {
+		GS->SetCurrentBoardSize(BoardSizeX, BoardSizeY, BoardDistance);
+		GS->SetCurrentBoardCount(BoardStructArr.Num());
+	}
 }
 
 void ABoxNesting::NestBox()
@@ -136,7 +156,6 @@ void ABoxNesting::NestBox()
 
 		// 순차적으로 Box 자리 찾기 
 		for (int i = 0; i < BoxArray.Num(); i++) {
-			//bool isSucceed = false;
 			int falseSpaceCount = 0;
 			int boxSizeX = BoxArray[i]->SizeX;
 			int boxSizeY = BoxArray[i]->SizeY;
@@ -152,59 +171,116 @@ void ABoxNesting::NestBox()
 				FBoardStruct board = BoardStructArr[j];
 
 				// 마지막 보드의 공백 영역이 박스 사이즈보다 작으면 자리확인 종료
-				int BoxArea = BoxArray[i]->SizeX * BoxArray[i]->SizeY;
+				int boxArea = BoxArray[i]->SizeX * BoxArray[i]->SizeY;
 				bool isLastBoard = j == BoardStructArr.Num() - 1;
-				if (isLastBoard && board.EmptyArea < BoxArea) {
+				if (isLastBoard && board.EmptyArea < boxArea) {
 					goto Finished_Counting;
 				}
 
 				// 탐색 전 보드 내부의 시작점 갱신
-				for (int boardY = 0; boardY < BoardSizeY; boardY++) {
-					for (int boardX = 0; boardX < BoardSizeX; boardX++) {
-						startPoint[0] = boardX;
-						startPoint[1] = boardY;
+				for (int boardY = PaddingY; boardY < BoardSizeY - PaddingY; boardY++) {
+					for (int boardX = PaddingX; boardX < BoardSizeX - PaddingX; boardX++) {
+						startPoint[0] = eAlign == EBoxAlign::E_Top ? boardX : boardY;
+						startPoint[1] = eAlign == EBoxAlign::E_Top ? boardY : boardX;
 
 						// 시작점부터 박스면적만큼 탐색
 						falseSpaceCount = GetFalseAreaInBoard(boxSizeX, boxSizeY, board, startPoint);
 
 						// 공간이 충분치 않으면 회전 후 다시 탐색
-						if (falseSpaceCount != BoxArea) {
+						if (falseSpaceCount != boxArea && bCanBoxRotating) {
 							boxSizeX = BoxArray[i]->SizeY;
 							boxSizeY = BoxArray[i]->SizeX;
 							falseSpaceCount = GetFalseAreaInBoard(boxSizeX, boxSizeY, board, startPoint);
 						}
 
-						// 공간 충분하면 배치 및 자리확인 종료
-						if (falseSpaceCount == BoxArea) {
-							if (i < 4) {
-								UE_LOG(LogTemp, Warning, TEXT("Succeed box : %d (x: %d, y:%d)"), i, startPoint[0], startPoint[1]);
-							}
+						// 회전 후에도 보드 폭(길이)가 짧고, 박스 정사각형이 아니면, 이전 박스도 돌려도 공간이 충분한지 확인
+						bool canRotateBeforeBox = (eAlign == EBoxAlign::E_Top && BeforeBoxSize.X > BeforeBoxSize.Y) ||
+							(eAlign == EBoxAlign::E_Left && BeforeBoxSize.Y > BeforeBoxSize.X);
+						if (falseSpaceCount < 0 && canRotateBeforeBox && bCanBoxRotating) {
+							int beforeFalseCount = GetFalseAreaInBoard(BeforeBoxSize.Y, BeforeBoxSize.X, BeforeBoard, BeforeStartPoint);
+							// 이전 박스 회전 성공
+							if (beforeFalseCount == BeforeBoxSize.Y * BeforeBoxSize.X) {
+								// Board Struct - matrix
+								int loopX = BeforeStartPoint[0] + BeforeBoxSize.Y + BoxDistance;
+								int loopY = BeforeStartPoint[1] + BeforeBoxSize.X + BoxDistance;
+								loopX = loopX <= BoardSizeX ? loopX - BeforeStartPoint[0] : BoardSizeX - BeforeStartPoint[0]; // padding 고려해 재설정
+								loopY = loopY <= BoardSizeY ? loopY - BeforeStartPoint[1] : BoardSizeY - BeforeStartPoint[1];
+								for (int y = 0; y < loopY; y++) {
+									for (int x = 0; x < loopX; x++) {
+										BeforeBoard.Matrix[BeforeStartPoint[1] + y].RowArr[BeforeStartPoint[0] + x] = 0;
+									}
+								}
 
-							// Board Matrix - Box & BoxDistance
+								// 새 박스 테스트
+								int tempFalseSpaceCount = 0;
+								int dist;
+								int tempStartPoint[2];
+								if (eAlign == EBoxAlign::E_Top) {
+									dist = BeforeBoxSize.X - BeforeBoxSize.Y;
+									tempStartPoint[0] = startPoint[0] - dist;
+									tempStartPoint[1] = startPoint[1];
+									tempFalseSpaceCount = GetFalseAreaInBoard(boxSizeX, boxSizeY, BeforeBoard, tempStartPoint);
+								}
+								else {
+									dist = BeforeBoxSize.Y - BeforeBoxSize.X;
+									tempStartPoint[0] = startPoint[0];
+									tempStartPoint[1] = startPoint[1] - dist;
+									tempFalseSpaceCount = GetFalseAreaInBoard(boxSizeX, boxSizeY, BeforeBoard, tempStartPoint);
+								}
+
+								// 두 박스 모두 배치 가능
+								if (tempFalseSpaceCount == boxArea) {
+									// Board Struct - matrix
+									BoardStructArr[j] = BeforeBoard;
+
+									// Before Box Actor
+									int alpha = (BoardSizeX + BoardDistance) * Unit * j;
+									FVector boxLocation = FVector(
+										(BeforeStartPoint[0] * Unit) + (BeforeBoxSize.Y * Unit * 0.5f) + alpha,
+										(BeforeStartPoint[1] * Unit) + (BeforeBoxSize.X * Unit * 0.5f),
+										0.0f
+									);
+									FVector scale = FVector(BeforeBoxSize.Y, BeforeBoxSize.X, 1.0f);
+									BoxISM->UpdateInstanceTransform(BoxISM->GetInstanceCount() - 1, FTransform(FRotator().ZeroRotator, boxLocation, scale));
+
+									// 새 박스
+									falseSpaceCount = tempFalseSpaceCount;
+									startPoint[0] = tempStartPoint[0];
+									startPoint[1] = tempStartPoint[1];
+								}
+							}
+						}
+
+						// 공간 충분하면 배치 및 자리확인 종료
+						if (falseSpaceCount == boxArea) {
+							// Backup & fork infomation
+							BeforeBoard = BoardStructArr[j];
+							BeforeBoxSize = FVector2D(boxSizeX, boxSizeY);
+							BeforeStartPoint[0] = startPoint[0];
+							BeforeStartPoint[1] = startPoint[1];
+
+							// Board Struct - matrix
 							int loopX = startPoint[0] + boxSizeX + BoxDistance;
 							int loopY = startPoint[1] + boxSizeY + BoxDistance;
-							loopX = loopX <= BoardSizeX ? loopX - startPoint[0] : BoardSizeX - startPoint[0];
+							loopX = loopX <= BoardSizeX ? loopX - startPoint[0] : BoardSizeX - startPoint[0]; // padding 고려해 재설정
 							loopY = loopY <= BoardSizeY ? loopY - startPoint[1] : BoardSizeY - startPoint[1];
 							for (int y = 0; y < loopY; y++) {
 								for (int x = 0; x < loopX; x++) {
 									BoardStructArr[j].Matrix[startPoint[1] + y].RowArr[startPoint[0] + x] = 0;
 								}
 							}
+							BoardStructArr[j].EmptyArea -= loopX * loopY;
 
 							// Box Actor
 							int alpha = (BoardSizeX + BoardDistance) * Unit * j;
 							FVector boxLocation = FVector(
 								(startPoint[0] * Unit) + (boxSizeX * Unit * 0.5f) + alpha,
 								(startPoint[1] * Unit) + (boxSizeY * Unit * 0.5f),
-								0.0f
+								i * 5.0f
 							);
 							FVector scale = FVector(boxSizeX, boxSizeY, 1.0f);
-							//BoxISM->CreateDynamicMaterialInstance(0);							
-							//BoxISM->SetVectorParameterValueOnMaterials(TEXT("Color"), AreaKindColors[i]);
 							BoxISM->AddInstance(FTransform(FRotator().ZeroRotator, boxLocation, scale));
-							// etc
-							//isSucceed = true;
-							BoardStructArr[j].EmptyArea -= loopX * loopY;
+
 							goto Finished_Box;
 						}
 					}
@@ -217,10 +293,6 @@ void ABoxNesting::NestBox()
 			AddBoard();
 
 			Finished_Box: {}
-			/*if (isSucceed) {
-				UE_LOG(LogTemp, Warning, TEXT("Succeed box : %d"), i);
-			}*/
-
 		}
 
 		// 필터에 걸린 박스 따로 그리기
@@ -243,10 +315,14 @@ void ABoxNesting::NestBox()
 	}
 }
 
+/*  보드 폭(길이)가 짧고 시작점이 false(1)이면 -1 리턴, 시작점이 true면 0 리턴, 이 외에는 찾은 false만큼 리턴 */
 int ABoxNesting::GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoardStruct _Board, int StartPoint[2])
 {
 	int falseCount = 0;
 	if (StartPoint[0] + BoxSizeX > BoardSizeX || StartPoint[1] + BoxSizeY > BoardSizeY) { 
+		if (_Board.Matrix[StartPoint[1]].RowArr[StartPoint[0]] == 1) {
+			return -1;
+		}
 		return falseCount;
 	}
 	else {
