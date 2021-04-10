@@ -2,12 +2,13 @@
 
 
 #include "BoxNesting.h"
+#include "../TileBase.h"
+#include "../NestingGS.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/DataTable.h"
-//#include "UObject/ConstructorHelpers.h"
 #include "BoxDataTable.h"
-#include "../NestingGS.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -31,7 +32,12 @@ ABoxNesting::ABoxNesting()
 void ABoxNesting::PostRegisterAllComponents()
 {
 	Super::PostRegisterAllComponents();
-#if WITH_EDITOR
+#if WITH_EDITOR	
+	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(),ATileBase::StaticClass(),"Tile", GarbageBoxActorArr);
+	for (int i = GarbageBoxActorArr.Num() - 1; i > 0; i--) {
+		GarbageBoxActorArr[i]->Destroy();
+	}
+	GarbageBoxActorArr.Empty();
 	ResetUnit();
 	CreateBoard(BoardSizeX, BoardSizeY, true);
 	NestBox();
@@ -41,9 +47,9 @@ void ABoxNesting::PostRegisterAllComponents()
 void ABoxNesting::BeginPlay()
 {
 	Super::BeginPlay();
-	ResetUnit();
-	CreateBoard(BoardSizeX, BoardSizeY, true);
-	NestBox();
+	//ResetUnit();
+	//CreateBoard(BoardSizeX, BoardSizeY, true);
+	//NestBox();
 }
 
 // Called every frame
@@ -66,6 +72,11 @@ void ABoxNesting::CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset) {
 		BoardISM->ClearInstances();
 		BoardStructArr.Empty();
 		FilteredBoxIndexes.Empty();
+		AreaKindColors.Empty();
+		for (int i = BoxActorArr.Num() - 1; i > 0; i--) {
+			BoxActorArr[i]->Destroy();
+		}
+		BoxActorArr.Empty();
 	}
 
 	// Board Actor - 보드길이 + 누적보드길이 + 누적보드간격
@@ -146,7 +157,7 @@ void ABoxNesting::NestBox()
 			// AreaKindColors
 			if (BoxArray[i]->SizeX * BoxArray[i]->SizeY != lastArea) {
 				lastArea = BoxArray[i]->SizeX * BoxArray[i]->SizeY;
-				lastColor = FVector(FMath::RandRange(0.1f, 1.0f), FMath::RandRange(0.1f, 1.0f), FMath::RandRange(0.1f, 1.0f));
+				lastColor = FVector(FMath::RandRange(0.1f, 1.0f), FMath::RandRange(0.1f, 1.0f), FMath::RandRange(0.1f, 1.0f)); 
 			}
 			AreaKindColors.Add(lastColor);
 		}
@@ -241,7 +252,12 @@ void ABoxNesting::NestBox()
 										0.0f
 									);
 									FVector scale = FVector(BeforeBoxSize.Y, BeforeBoxSize.X, 1.0f);
-									BoxISM->UpdateInstanceTransform(BoxISM->GetInstanceCount() - 1, FTransform(FRotator().ZeroRotator, boxLocation, scale));
+									if (bIsColorfullBox) {
+										BoxActorArr[BoxActorArr.Num()-1]->SetActorRelativeLocation(boxLocation);
+									}
+									else {
+										BoxISM->UpdateInstanceTransform(BoxISM->GetInstanceCount() - 1, FTransform(FRotator().ZeroRotator, boxLocation, scale));
+									}
 
 									// 새 박스
 									falseSpaceCount = tempFalseSpaceCount;
@@ -276,10 +292,26 @@ void ABoxNesting::NestBox()
 							FVector boxLocation = FVector(
 								(startPoint[0] * Unit) + (boxSizeX * Unit * 0.5f) + alpha,
 								(startPoint[1] * Unit) + (boxSizeY * Unit * 0.5f),
-								i * 5.0f
+								0.0f
 							);
 							FVector scale = FVector(boxSizeX, boxSizeY, 1.0f);
-							BoxISM->AddInstance(FTransform(FRotator().ZeroRotator, boxLocation, scale));
+							if (bIsColorfullBox) {
+								ATileBase* tempBox = GetWorld()->SpawnActor<ATileBase>(BoxClass, boxLocation, FRotator().ZeroRotator);
+								if (tempBox) {
+									tempBox->SetActorRelativeScale3D(scale);
+									TArray<UActorComponent*> staticMeshes = tempBox->GetComponentsByTag(UStaticMeshComponent::StaticClass(),FName("Tile"));
+									if (staticMeshes.Num()) {
+										UStaticMeshComponent* staticMesh = Cast<UStaticMeshComponent>(staticMeshes[0]);
+										UMaterialInstanceDynamic* material = UMaterialInstanceDynamic::Create(staticMesh->GetMaterial(0), NULL);
+										material->SetVectorParameterValue("Color", AreaKindColors[i]);
+										staticMesh->SetMaterial(0, material);
+									}
+									BoxActorArr.Add(tempBox);
+								}
+							}
+							else {
+								BoxISM->AddInstance(FTransform(FRotator().ZeroRotator, boxLocation, scale));
+							}						
 
 							goto Finished_Box;
 						}

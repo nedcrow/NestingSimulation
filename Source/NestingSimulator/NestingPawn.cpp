@@ -66,9 +66,7 @@ void ANestingPawn::MoveForward(float Value)
 	{
 		return;
 	}
-
-	FVector ControlForwardVector2D = GetControlRotation().Vector().GetSafeNormal2D();
-	AddMovementInput(ControlForwardVector2D, Value * MoveSpeed);
+	AddMovementInput(RootComponent->GetForwardVector(), Value * MoveSpeed);
 }
 
 void ANestingPawn::MoveRight(float Value)
@@ -77,9 +75,7 @@ void ANestingPawn::MoveRight(float Value)
 	{
 		return;
 	}
-
-	FVector ControlRightVector2D = GetControlRotation().RotateVector(FVector::RightVector).GetSafeNormal2D();
-	AddMovementInput(ControlRightVector2D, Value * MoveSpeed);
+	AddMovementInput(RootComponent->GetRightVector(), Value * MoveSpeed);
 }
 
 void ANestingPawn::TurnRight(float Value)

@@ -66,6 +66,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_BoxAlign")
 	EBoxAlign eAlign = EBoxAlign::E_Top;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_BoxColor")
+	bool bIsColorfullBox = false;
+
 #pragma region Board
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
 	TArray<FBoardStruct> BoardStructArr;
@@ -92,6 +95,15 @@ public:
 #pragma region Box
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
 	class UDataTable* BoxDataTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
+	TSubclassOf<class ATileBase> BoxClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
+	TArray<ATileBase*> BoxActorArr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
+	TArray<AActor*> GarbageBoxActorArr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
 	TArray<int> FilteredBoxIndexes;
