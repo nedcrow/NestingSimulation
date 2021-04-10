@@ -29,8 +29,6 @@ ANestingPawn::ANestingPawn()
 
 	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
 	Movement->UpdatedComponent = RootComponent;
-
-	bUseControllerRotationYaw = true;
 }
 
 // Called when the game starts or when spawned
@@ -38,14 +36,14 @@ void ANestingPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	RootComponent->SetRelativeLocation(FVector(.0f, .0f, 300.0f));
-	RootComponent->SetRelativeRotation(FRotator(.0f, 90.0f, .0f));
 }
 
 // Called every frame
 void ANestingPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+		
+	if(bCanRotateAround)CameraRotateAround();
 }
 
 // Called to bind functionality to input
@@ -58,8 +56,8 @@ void ANestingPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(TEXT("TurnRight"), this, &ANestingPawn::TurnRight);
 	PlayerInputComponent->BindAction(TEXT("ZoomIn"), IE_Released, this, &ANestingPawn::ZoomIn);
 	PlayerInputComponent->BindAction(TEXT("ZoomOut"), IE_Released, this, &ANestingPawn::ZoomOut);
-	PlayerInputComponent->BindAction(TEXT("CameraRotationAround"), IE_Pressed, this, &ANestingPawn::SetCurrentMousePosition);
-	PlayerInputComponent->BindAction(TEXT("CameraRotationAround"), IE_Released, this, &ANestingPawn::CameraRotationAround);
+	PlayerInputComponent->BindAction(TEXT("CameraRotateAround"), IE_Pressed, this, &ANestingPawn::SetStartTransform);
+	PlayerInputComponent->BindAction(TEXT("LeftClick"), IE_Released, this, &ANestingPawn::EndCameraRotating);
 }
 
 void ANestingPawn::MoveForward(float Value)
@@ -70,7 +68,7 @@ void ANestingPawn::MoveForward(float Value)
 	}
 
 	FVector ControlForwardVector2D = GetControlRotation().Vector().GetSafeNormal2D();
-	AddMovementInput(ControlForwardVector2D, Value);
+	AddMovementInput(ControlForwardVector2D, Value * MoveSpeed);
 }
 
 void ANestingPawn::MoveRight(float Value)
@@ -81,7 +79,7 @@ void ANestingPawn::MoveRight(float Value)
 	}
 
 	FVector ControlRightVector2D = GetControlRotation().RotateVector(FVector::RightVector).GetSafeNormal2D();
-	AddMovementInput(ControlRightVector2D, Value);
+	AddMovementInput(ControlRightVector2D, Value * MoveSpeed);
 }
 
 void ANestingPawn::TurnRight(float Value)
@@ -91,7 +89,11 @@ void ANestingPawn::TurnRight(float Value)
 		return;
 	}
 
-	AddControllerYawInput(Value * TurnSpeed);
+	RootComponent->AddRelativeRotation(FRotator(
+		0.0f,
+		Value * TurnSpeed,
+		0.0f
+	));
 }
 
 void ANestingPawn::ZoomIn()
@@ -103,31 +105,44 @@ void ANestingPawn::ZoomIn()
 
 void ANestingPawn::ZoomOut()
 {
-	//if (SpringArm->TargetArmLength + WheelSpeed >= 3000) SpringArm->TargetArmLength = 3000;
 	SpringArm->TargetArmLength += WheelSpeed;
 }
 
-void ANestingPawn::CameraRotationAround()
+void ANestingPawn::CameraRotateAround()
 {
 	ANestingPlayerController* PC = Cast<ANestingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC) {
+		int32 scrX;
+		int32 scrY;
 		FVector2D tempMousePosition;
-		int32 x;
-		int32 y;
-		PC->GetViewportSize(x,y);
+		
+		PC->GetViewportSize(scrX,scrY);
 		PC->GetLocalPlayer()->ViewportClient->GetMousePosition(tempMousePosition);
-		RootComponent->SetRelativeRotation(FRotator(
-			tempMousePosition.X - CurrentMousePosition.X / x,
-			y,
-			0.0f
-		));
+
+		float addRotationPitch = ((tempMousePosition.Y - StartMousePosition.Y) / scrY * MaxRotation);
+		float addRotationYaw = ((tempMousePosition.X - StartMousePosition.X) / scrX * MaxRotation);
+
+		if (addRotationPitch != 0 && addRotationYaw != 0) {
+			RootComponent->SetRelativeRotation(FRotator(
+				StartRootRotator.Pitch - addRotationPitch,
+				StartRootRotator.Yaw + addRotationYaw,
+				0.0f
+			));
+		}
 	}
 }
 
-void ANestingPawn::SetCurrentMousePosition()
+void ANestingPawn::EndCameraRotating()
+{
+	bCanRotateAround = false;
+}
+
+void ANestingPawn::SetStartTransform()
 {
 	ANestingPlayerController* PC = Cast<ANestingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC) {
-		PC->GetLocalPlayer()->ViewportClient->GetMousePosition(CurrentMousePosition);
+		PC->GetLocalPlayer()->ViewportClient->GetMousePosition(StartMousePosition);
+		StartRootRotator = RootComponent->GetRelativeTransform().Rotator();
+		bCanRotateAround = true;
 	}
 }

@@ -31,6 +31,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -40,16 +41,26 @@ public:
 
 	// Translate
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
+	float MoveSpeed = 1000.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
 	float TurnSpeed = 0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
 	float WheelSpeed = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pawn")
-	FVector2D CurrentMousePosition;
+	float MaxRotation = 180.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pawn")
+	bool bCanRotateAround = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pawn")
+	FVector2D StartMousePosition;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pawn")
+	FRotator StartRootRotator;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnRight(float Value);
 	void ZoomIn();
 	void ZoomOut();
-	void CameraRotationAround();
-	void SetCurrentMousePosition();
+	void CameraRotateAround();
+	void EndCameraRotating();
+	void SetStartTransform();
 };
