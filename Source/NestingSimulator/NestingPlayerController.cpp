@@ -7,11 +7,9 @@
 void ANestingPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
-	if (IsLocalPlayerController()) {
-		if (SimulationWidgetClass) {
-			SimulationWidgetObject = CreateWidget<USimulationWidgetBase>(this, SimulationWidgetClass);
-			if (SimulationWidgetObject) SimulationWidgetObject->AddToViewport();
-			bShowMouseCursor = true;
-		}
+	if (SimulationWidgetClass && IsLocalPlayerController()) {
+		SimulationWidgetObject = CreateWidget<USimulationWidgetBase>(this, SimulationWidgetClass);
+		SimulationWidgetObject->AddToViewport();
+		bShowMouseCursor = true;
 	}
 }

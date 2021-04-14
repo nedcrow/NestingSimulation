@@ -13,5 +13,17 @@ UCLASS()
 class NESTINGSIMULATOR_API USimulationWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+protected:
+		virtual void NativeConstruct() override;
+
+public:
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Widget")
+		class UComboBoxString* NestingTypeDropDown;
+
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Widget")
+		class UCheckBoxWidgetBase* AutoFilter;
+
+	UFUNCTION()
+		void OnCheckedAutoFilter(bool bIsChecked);
 };

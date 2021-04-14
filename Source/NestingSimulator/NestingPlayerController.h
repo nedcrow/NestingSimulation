@@ -18,9 +18,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
 		TSubclassOf<class USimulationWidgetBase> SimulationWidgetClass;
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "UI")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "UI")
 		class USimulationWidgetBase* SimulationWidgetObject;
 };

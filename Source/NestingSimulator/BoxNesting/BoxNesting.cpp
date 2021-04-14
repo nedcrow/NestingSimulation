@@ -35,7 +35,7 @@ void ABoxNesting::PostRegisterAllComponents()
 #if WITH_EDITOR	
 	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(),ATileBase::StaticClass(),"Tile", GarbageBoxActorArr);
 	for (int i = GarbageBoxActorArr.Num() - 1; i > 0; i--) {
-		GarbageBoxActorArr[i]->Destroy();
+		if(!GarbageBoxActorArr[i]->IsPendingKill()) GarbageBoxActorArr[i]->Destroy();
 	}
 	GarbageBoxActorArr.Empty();
 	ResetUnit();
