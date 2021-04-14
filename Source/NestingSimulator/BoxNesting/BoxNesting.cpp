@@ -33,23 +33,13 @@ void ABoxNesting::PostRegisterAllComponents()
 {
 	Super::PostRegisterAllComponents();
 #if WITH_EDITOR	
-	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(),ATileBase::StaticClass(),"Tile", GarbageBoxActorArr);
-	for (int i = GarbageBoxActorArr.Num() - 1; i > 0; i--) {
-		if(!GarbageBoxActorArr[i]->IsPendingKill()) GarbageBoxActorArr[i]->Destroy();
-	}
-	GarbageBoxActorArr.Empty();
-	ResetUnit();
-	CreateBoard(BoardSizeX, BoardSizeY, true);
-	NestBox();
+	NestBoxes();
 #endif
 }
 
 void ABoxNesting::BeginPlay()
 {
-	Super::BeginPlay();
-	//ResetUnit();
-	//CreateBoard(BoardSizeX, BoardSizeY, true);
-	//NestBox();
+	Super::BeginPlay();	
 }
 
 // Called every frame
@@ -57,6 +47,22 @@ void ABoxNesting::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ABoxNesting::NestBoxes()
+{
+	CleanUpGarbageBoxes();
+	ResetUnit();
+	CreateBoard(BoardSizeX, BoardSizeY, true);
+	NestBox();
+}
+
+void ABoxNesting::CleanUpGarbageBoxes() {
+	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), ATileBase::StaticClass(), "Tile", GarbageBoxActorArr);
+	for (int i = GarbageBoxActorArr.Num() - 1; i >= 0; i--) {
+		if (!GarbageBoxActorArr[i]->IsPendingKill()) GarbageBoxActorArr[i]->Destroy();
+	}
+	GarbageBoxActorArr.Empty();
 }
 
 /* must, this function have call first.*/
@@ -73,10 +79,8 @@ void ABoxNesting::CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset) {
 		BoardStructArr.Empty();
 		FilteredBoxIndexes.Empty();
 		AreaKindColors.Empty();
-		for (int i = BoxActorArr.Num() - 1; i > 0; i--) {
-			BoxActorArr[i]->Destroy();
-		}
 		BoxActorArr.Empty();
+		CleanUpGarbageBoxes();
 	}
 
 	// Board Actor - 보드길이 + 누적보드길이 + 누적보드간격
@@ -136,7 +140,7 @@ void ABoxNesting::NestBox()
 		BoxArray.Sort([](FBoxListTableRow a, FBoxListTableRow b) {return a.SizeX * a.SizeY > b.SizeX * b.SizeY; });
 
 		// filter & AreaKindColors
-		int lastArea = 0;
+		int lastArea = -1;
 		FVector lastColor;
 		for (int i = 0; i < BoxArray.Num(); i++) {
 			// filter
