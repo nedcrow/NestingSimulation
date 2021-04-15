@@ -7,5 +7,7 @@
 void UCheckBoxWidgetBase::NativeConstruct() {
 	Super::NativeConstruct();
 	ChildBoxText = Cast<UTextBlock>(GetWidgetFromName(TEXT("ChildBoxText")));
+	if(ChildBoxText) ChildBoxText->SetText(FText::FromName(DefaultText));
+
 	ChildCheckBox = Cast<UCheckBox>(GetWidgetFromName(TEXT("ChildCheckBox")));
 }

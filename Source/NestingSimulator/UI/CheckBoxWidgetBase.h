@@ -17,6 +17,10 @@ protected:
 	virtual void NativeConstruct()override;
 
 public:
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
+		FName DefaultText="Text";
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
 		class UTextBlock* ChildBoxText;
 

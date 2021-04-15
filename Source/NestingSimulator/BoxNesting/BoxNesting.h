@@ -86,22 +86,22 @@ public:
 	TArray<FBoardStruct> BoardStructArr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int BoardSizeX = 10;
+	int32 BoardSizeX = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int BoardSizeY = 10;
+	int32 BoardSizeY = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int PaddingX = 1;
+	int32 PaddingX = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int PaddingY = 1;
+	int32 PaddingY = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int BoardDistance = 1;
+	int32 BoardDistance = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	int BoxDistance = 1;
+	int32 BoxDistance = 1;
 #pragma endregion
 
 #pragma region Box
@@ -121,10 +121,10 @@ public:
 	TArray<int> FilteredBoxIndexes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
-	int FilterSizeMin = 1;
+	int32 FilterSizeMin = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
-	int FilterSizeMax = 10;
+	int32 FilterSizeMax = 10;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Data_Box")
 	TArray<FVector> AreaKindColors;

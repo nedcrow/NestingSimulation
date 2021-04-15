@@ -16,14 +16,80 @@ class NESTINGSIMULATOR_API USimulationWidgetBase : public UUserWidget
 
 protected:
 		virtual void NativeConstruct() override;
+		bool AutoNesting = false;
+		void SetUMGProperties();
+		UPROPERTY()
+		class ABoxNesting* BoxNesting;
 
 public:
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Widget")
+	// NestingType
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
 		class UComboBoxString* NestingTypeDropDown;
 
-	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Widget")
+	// AutoFilter
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
 		class UCheckBoxWidgetBase* AutoFilter;
-
 	UFUNCTION()
 		void OnCheckedAutoFilter(bool bIsChecked);
+
+	// CanBoxRotating
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UCheckBoxWidgetBase* CanBoxRotating;
+	UFUNCTION()
+		void OnCheckedBoxRotating(bool bIsChecked);
+
+	// CanColoring_BoxArea
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UCheckBoxWidgetBase* CanColoring_BoxArea;
+	UFUNCTION()
+		void OnCheckedBoxArea(bool bIsChecked);
+
+	// CanColoring_BoxGroup
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UCheckBoxWidgetBase* CanColoring_BoxGroup;
+	UFUNCTION()
+		void OnCheckedBoxGroup(bool bIsChecked);
+
+	// AlignOption
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UComboBoxString* AlignDropDown;
+
+	// Board
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoardSizeX;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoardSizeY;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoardPaddingX;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoardPaddingY;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoardMargin;
+
+	UFUNCTION()
+		void OnChangedBoardSizeX(const FText& Text, ETextCommit::Type Method);
+	UFUNCTION()
+		void OnChangedBoardSizeY(const FText& Text, ETextCommit::Type Method);
+	UFUNCTION()
+		void OnChangedBoardPaddingX(const FText& Text, ETextCommit::Type Method);
+	UFUNCTION()
+		void OnChangedBoardPaddingY(const FText& Text, ETextCommit::Type Method);
+	UFUNCTION()
+		void OnChangedBoardMargin(const FText& Text, ETextCommit::Type Method);
+
+	// Box
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoxMargin;
+	UFUNCTION()
+		void OnChangedBoxMargin(const FText& Text, ETextCommit::Type Method);
+
+	// NestButton
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UButton* NestButton;
+	UFUNCTION()
+		void OnClickedNestButton();
+
+	// AutoButton		
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UCheckBox* AutoCheckBox;
 };
