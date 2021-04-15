@@ -23,5 +23,6 @@ void USimulationWidgetBase::OnCheckedAutoFilter(bool bIsChecked)
 	ABoxNesting* BoxNesting = Cast<ABoxNesting>(UGameplayStatics::GetActorOfClass(GetWorld(), ABoxNesting::StaticClass()));
 	if (BoxNesting) {
 		BoxNesting->bCanAutoFiltering = bIsChecked;
+		BoxNesting->NestBoxes();
 	}
 }

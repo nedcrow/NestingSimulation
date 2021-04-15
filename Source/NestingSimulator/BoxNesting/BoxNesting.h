@@ -65,11 +65,21 @@ public:
 	void CleanUpGarbageBoxes();
 	void ResetUnit();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_BoxAlign")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Common")
 	EBoxAlign eAlign = EBoxAlign::E_Top;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_BoxColor")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Common")
 	bool bIsColorfullBox = false;
+
+	/*이 프로미터가 활성화되면 걸러진 상자들을 따로 배치한다.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Common")
+	bool bCanAutoFiltering = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Common")
+	bool bCanBoxRotating = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Common")
+	bool bCanTypeGrouping = false;
 
 #pragma region Board
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
@@ -110,16 +120,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
 	TArray<int> FilteredBoxIndexes;
 
-	/*이 프로미터가 활성화되면 걸러진 상자들을 따로 배치한다.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
-	bool bCanAutoFiltering = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
-	bool bCanBoxRotating = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
-	bool bCanTypeGrouping = false;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Box")
 	int FilterSizeMin = 1;
 
@@ -131,6 +131,7 @@ public:
 
 #pragma endregion
 
+private:
 	void CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset);
 	void AddBoard();
 	void NestBox();
