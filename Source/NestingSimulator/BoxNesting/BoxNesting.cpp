@@ -40,6 +40,7 @@ void ABoxNesting::PostRegisterAllComponents()
 void ABoxNesting::BeginPlay()
 {
 	Super::BeginPlay();	
+	NestBoxes();
 }
 
 // Called every frame
@@ -125,7 +126,7 @@ void ABoxNesting::AddBoard() {
 	ANestingGS* GS = Cast<ANestingGS>(UGameplayStatics::GetGameState(GetWorld()));
 	if (GS) {
 		GS->SetCurrentBoardSize(BoardSizeX, BoardSizeY, BoardDistance);
-		GS->SetCurrentBoardCount(BoardStructArr.Num());
+		GS->CurrentBoardCount=BoardStructArr.Num();
 	}
 }
 

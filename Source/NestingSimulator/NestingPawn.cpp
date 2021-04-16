@@ -21,6 +21,7 @@ ANestingPawn::ANestingPawn()
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(Sphere);
+	SpringArm->bDoCollisionTest = false;
 	SpringArm->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
 	SpringArm->TargetArmLength = 3000.0f;
 
@@ -54,6 +55,7 @@ void ANestingPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ANestingPawn::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ANestingPawn::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("TurnRight"), this, &ANestingPawn::TurnRight);
+	PlayerInputComponent->BindAction(TEXT("Interaction"), IE_Released, this, &ANestingPawn::FitCameraZoom);
 	PlayerInputComponent->BindAction(TEXT("ZoomIn"), IE_Released, this, &ANestingPawn::ZoomIn);
 	PlayerInputComponent->BindAction(TEXT("ZoomOut"), IE_Released, this, &ANestingPawn::ZoomOut);
 	PlayerInputComponent->BindAction(TEXT("CameraRotateAround"), IE_Pressed, this, &ANestingPawn::SetStartTransform);
@@ -90,6 +92,17 @@ void ANestingPawn::TurnRight(float Value)
 		Value * TurnSpeed,
 		0.0f
 	));
+}
+
+void ANestingPawn::FitCameraZoom()
+{
+	ANestingGS* GS = Cast<ANestingGS>(UGameplayStatics::GetGameState(GetWorld()));
+	if (GS) {
+		float centerOfAreaX = GS->GetSizeOfBoard().X * GS->CurrentBoardCount * 0.5f;
+		float inclinationOfCamera = abs((double)SpringArm->GetRelativeRotation().Pitch) / 90;
+		RootComponent->SetRelativeLocation(FVector(centerOfAreaX * inclinationOfCamera, GS->GetSizeOfBoard().Y * 0.5f, 0.0f));
+		SpringArm->TargetArmLength = GS->GetAreaOfBoards() * 0.01f;
+	}
 }
 
 void ANestingPawn::ZoomIn()

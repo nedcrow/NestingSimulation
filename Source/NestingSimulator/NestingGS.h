@@ -17,17 +17,16 @@ class NESTINGSIMULATOR_API ANestingGS : public AGameStateBase
 protected:
 	FVector2D CurrentBoardSize;
 	int CurrentBoardDistance;
-	int CurrentBoardCount;
 
 public:
+	int CurrentBoardCount;
+
 	// Centimeter
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	float Unit = 100;
 
 	/* Alpha is distance of that board and diffrent board */
 	void SetCurrentBoardSize(int X, int Y, int Alpha);
-
-	void SetCurrentBoardCount(int Count);
 
 	/* Return x_y size is centimeter */
 	FVector2D GetSizeOfBoard();

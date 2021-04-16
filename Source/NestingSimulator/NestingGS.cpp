@@ -9,11 +9,6 @@ void ANestingGS::SetCurrentBoardSize(int X, int Y, int Alpha)
 	CurrentBoardDistance = Alpha;
 }
 
-void ANestingGS::SetCurrentBoardCount(int Count)
-{
-	CurrentBoardCount = Count;
-}
-
 /* Return x_y size is centimeter */
 FVector2D ANestingGS::GetSizeOfBoard()
 {

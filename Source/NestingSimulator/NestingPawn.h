@@ -58,6 +58,7 @@ public:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void TurnRight(float Value);
+	void FitCameraZoom();
 	void ZoomIn();
 	void ZoomOut();
 	void CameraRotateAround();
