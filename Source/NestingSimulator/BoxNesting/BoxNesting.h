@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BoxDataTable.h"
 #include "BoxNesting.generated.h"
 
 UENUM(BlueprintType)
@@ -26,11 +27,18 @@ struct FBoardStruct {
 
 public:
 	TArray<FRowStruct> Matrix;
-	//int8 ** Matrix;
 	int EmptyArea;
 };
 
+USTRUCT(Atomic, BlueprintType)
+struct FBoxGroup {
+	GENERATED_BODY()
 
+public:
+	int TypeIndex;
+	TArray<FBoxListTableRow*> Boxes;
+	TArray<int32> FilteredIndexes;
+};
 
 
 UCLASS()
@@ -53,9 +61,12 @@ protected:
 	virtual void PostRegisterAllComponents() override;
 	virtual void BeginPlay() override;
 	float Unit = 100;
+	int CurrentTypeGroupIndex;
 	int BeforeStartPoint[2] = {0,0};
 	FVector2D BeforeBoxSize;
 	FBoardStruct BeforeBoard;
+	TArray<FBoxListTableRow*> BoxArray;
+	TArray<FBoxGroup*> BoxGroups;
 
 public:	
 	// Called every frame
@@ -127,13 +138,15 @@ public:
 	int32 FilterSizeMax = 10;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Data_Box")
-	TArray<FVector> AreaKindColors;
+	TArray<FVector> BoxColorArray;
 
 #pragma endregion
 
 private:
-	void CreateBoard(int _BoardSizeX, int _BoardSizeY, bool IsReset);
 	void AddBoard();
-	void NestBox();
+	void CreateBoard(int _BoardSizeX, int _BoardSizeY);	
+	void ArrangeBoxes();
+	void NestOneArray(TArray<FBoxListTableRow*> Boxes, int StartBoardIndex);
+	void DrawFilteredBox();
 	int GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoardStruct _Board, int StartPoint[2]);
 };

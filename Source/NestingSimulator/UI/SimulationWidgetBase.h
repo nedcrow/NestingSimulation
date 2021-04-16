@@ -46,13 +46,15 @@ public:
 
 	// CanColoring_BoxGroup
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
-		class UCheckBoxWidgetBase* CanColoring_BoxGroup;
+		class UCheckBoxWidgetBase* CanGrouping_BoxType;
 	UFUNCTION()
 		void OnCheckedBoxGroup(bool bIsChecked);
 
 	// AlignOption
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
 		class UComboBoxString* AlignDropDown;
+	UFUNCTION()
+	void OnChangedAlign(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 	// Board
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")

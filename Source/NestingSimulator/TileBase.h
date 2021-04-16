@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ATileBase();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	class UBoxComponent* Box;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -28,4 +28,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FString Type;
 };

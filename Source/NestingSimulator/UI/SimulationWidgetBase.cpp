@@ -18,7 +18,8 @@ void USimulationWidgetBase::NativeConstruct() {
 	AutoFilter = Cast<UCheckBoxWidgetBase>(GetWidgetFromName(TEXT("AutoFilter")));
 	CanBoxRotating = Cast<UCheckBoxWidgetBase>(GetWidgetFromName(TEXT("CanBoxRotating")));
 	CanColoring_BoxArea = Cast<UCheckBoxWidgetBase>(GetWidgetFromName(TEXT("CanColoring_BoxArea")));
-	CanColoring_BoxGroup = Cast<UCheckBoxWidgetBase>(GetWidgetFromName(TEXT("CanColoring_BoxGroup")));
+	CanGrouping_BoxType = Cast<UCheckBoxWidgetBase>(GetWidgetFromName(TEXT("CanGrouping_BoxType")));
+	AlignDropDown = Cast<UComboBoxString>(GetWidgetFromName(TEXT("AlignDropDown")));
 	NestButton = Cast<UButton>(GetWidgetFromName(TEXT("NestButton")));
 	BoardSizeX = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardSizeX")));
 	BoardSizeY = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardSizeY")));
@@ -32,7 +33,10 @@ void USimulationWidgetBase::NativeConstruct() {
 	if (AutoFilter->ChildCheckBox)				AutoFilter->ChildCheckBox->OnCheckStateChanged.AddDynamic(this, &USimulationWidgetBase::OnCheckedAutoFilter);
 	if (CanBoxRotating->ChildCheckBox)			CanBoxRotating->ChildCheckBox->OnCheckStateChanged.AddDynamic(this, &USimulationWidgetBase::OnCheckedBoxRotating);
 	if (CanColoring_BoxArea->ChildCheckBox)		CanColoring_BoxArea->ChildCheckBox->OnCheckStateChanged.AddDynamic(this, &USimulationWidgetBase::OnCheckedBoxArea);
-	if (CanColoring_BoxGroup->ChildCheckBox)	CanColoring_BoxGroup->ChildCheckBox->OnCheckStateChanged.AddDynamic(this, &USimulationWidgetBase::OnCheckedBoxGroup);
+	if (CanGrouping_BoxType->ChildCheckBox)		CanGrouping_BoxType->ChildCheckBox->OnCheckStateChanged.AddDynamic(this, &USimulationWidgetBase::OnCheckedBoxGroup);
+
+	// DropDown
+	if(AlignDropDown)							AlignDropDown->OnSelectionChanged.AddDynamic(this, &USimulationWidgetBase::OnChangedAlign);
 
 	// EditableText OnTextCommitted
 	if (BoardSizeX)								BoardSizeX->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoardSizeX);
@@ -57,7 +61,8 @@ void USimulationWidgetBase::SetUMGProperties() {
 	AutoFilter->ChildCheckBox->SetCheckedState(BoxNesting->bCanAutoFiltering ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
 	CanBoxRotating->ChildCheckBox->SetCheckedState(BoxNesting->bCanBoxRotating ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
 	CanColoring_BoxArea->ChildCheckBox->SetCheckedState(BoxNesting->bIsColorfullBox ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
-	CanColoring_BoxGroup->ChildCheckBox->SetCheckedState(BoxNesting->bCanTypeGrouping ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+	CanGrouping_BoxType->ChildCheckBox->SetCheckedState(BoxNesting->bCanTypeGrouping ? ECheckBoxState::Checked : ECheckBoxState::Unchecked);
+	AlignDropDown->SetSelectedIndex(BoxNesting->eAlign == EBoxAlign::E_Top ? 0 : 1);
 	BoardSizeX->SetText(FText::AsNumber(BoxNesting->BoardSizeX));
 	BoardSizeY->SetText(FText::AsNumber(BoxNesting->BoardSizeY));
 	BoardPaddingX->SetText(FText::AsNumber(BoxNesting->PaddingX));
@@ -94,6 +99,14 @@ void USimulationWidgetBase::OnCheckedBoxGroup(bool bIsChecked)
 {
 	if (BoxNesting) {
 		BoxNesting->bCanTypeGrouping = bIsChecked;
+		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
+	}
+}
+
+void USimulationWidgetBase::OnChangedAlign(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	if (BoxNesting) {
+		BoxNesting->eAlign = SelectedItem == "Vertical" ? EBoxAlign::E_Top : EBoxAlign::E_Left;
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
