@@ -11,3 +11,12 @@ int UUtility::GetIntFromFText(const FText& Text)
 	UE_LOG(LogClass, Warning, TEXT("Text is not numeric"));
     return NAN;
 }
+
+int UUtility::GetIntFromFText(const FString& Text)
+{
+	if (Text.IsNumeric()) {
+		return FCString::Atoi(*Text);
+	}
+	UE_LOG(LogClass, Warning, TEXT("Text is not numeric"));
+	return NAN;
+}

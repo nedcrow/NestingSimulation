@@ -26,7 +26,9 @@ void USimulationWidgetBase::NativeConstruct() {
 	BoardPaddingX = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardPaddingX")));
 	BoardPaddingY = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardPaddingY")));
 	BoardMargin = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardMargin")));
-	BoardMargin = Cast<UEditableText>(GetWidgetFromName(TEXT("BoardMargin")));
+	BoxMargin = Cast<UEditableText>(GetWidgetFromName(TEXT("BoxMargin")));
+	BoxMin = Cast<UEditableText>(GetWidgetFromName(TEXT("BoxMin")));
+	BoxMax = Cast<UEditableText>(GetWidgetFromName(TEXT("BoxMax")));
 	AutoCheckBox = Cast<UCheckBox>(GetWidgetFromName(TEXT("AutoCheckBox")));
 
 	// CheckBoxes OnCheckStateChanged
@@ -44,6 +46,8 @@ void USimulationWidgetBase::NativeConstruct() {
 	if (BoardPaddingX)							BoardPaddingX->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoardPaddingX);
 	if (BoardPaddingY)							BoardPaddingY->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoardPaddingY);
 	if (BoardMargin)							BoardMargin->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoardMargin);
+	if (BoxMin)									BoxMin->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoxMin);
+	if (BoxMax)									BoxMax->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoxMax);
 	if (BoxMargin)								BoxMargin->OnTextCommitted.AddDynamic(this, &USimulationWidgetBase::OnChangedBoxMargin);
 
 	// Button
@@ -68,6 +72,8 @@ void USimulationWidgetBase::SetUMGProperties() {
 	BoardPaddingX->SetText(FText::AsNumber(BoxNesting->PaddingX));
 	BoardPaddingY->SetText(FText::AsNumber(BoxNesting->PaddingY));
 	BoardMargin->SetText(FText::AsNumber(BoxNesting->BoardDistance));
+	BoxMin->SetText(FText::AsNumber(BoxNesting->FilterSizeMin));
+	BoxMax->SetText(FText::AsNumber(BoxNesting->FilterSizeMax));
 	BoxMargin->SetText(FText::AsNumber(BoxNesting->BoxDistance));
 }
 
@@ -116,7 +122,6 @@ void USimulationWidgetBase::OnChangedBoardSizeX(const FText& Text, ETextCommit::
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->BoardSizeX = isnan((double)value) ? BoxNesting->BoardSizeX : value;
-		BoardSizeX->SetText(FText::AsNumber(BoxNesting->BoardSizeX));
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
@@ -126,7 +131,6 @@ void USimulationWidgetBase::OnChangedBoardSizeY(const FText& Text, ETextCommit::
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->BoardSizeY = isnan((double)value) ? BoxNesting->BoardSizeY : value;
-		BoardSizeY->SetText(FText::AsNumber(BoxNesting->BoardSizeY));
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
@@ -136,7 +140,6 @@ void USimulationWidgetBase::OnChangedBoardPaddingX(const FText& Text, ETextCommi
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->PaddingX = isnan((double)value) ? BoxNesting->PaddingX : value;
-		BoardPaddingX->SetText(FText::AsNumber(BoxNesting->PaddingX));
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
@@ -146,7 +149,6 @@ void USimulationWidgetBase::OnChangedBoardPaddingY(const FText& Text, ETextCommi
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->PaddingY = isnan((double)value) ? BoxNesting->PaddingY : value;
-		BoardPaddingY->SetText(FText::AsNumber(BoxNesting->PaddingY));
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
@@ -156,7 +158,24 @@ void USimulationWidgetBase::OnChangedBoardMargin(const FText& Text, ETextCommit:
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->BoardDistance = isnan((double)value) ? BoxNesting->BoardDistance : value;
-		BoardMargin->SetText(FText::AsNumber(BoxNesting->BoardDistance));
+		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
+	}
+}
+
+void USimulationWidgetBase::OnChangedBoxMin(const FText& Text, ETextCommit::Type Method)
+{
+	if (Method == ETextCommit::OnEnter) {
+		int value = UUtility::GetIntFromFText(Text);
+		BoxNesting->FilterSizeMin = isnan((double)value) ? BoxNesting->BoardDistance : value;
+		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
+	}
+}
+
+void USimulationWidgetBase::OnChangedBoxMax(const FText& Text, ETextCommit::Type Method)
+{
+	if (Method == ETextCommit::OnEnter) {
+		int value = UUtility::GetIntFromFText(Text);
+		BoxNesting->FilterSizeMax = isnan((double)value) ? BoxNesting->BoardDistance : value;
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }
@@ -166,7 +185,6 @@ void USimulationWidgetBase::OnChangedBoxMargin(const FText& Text, ETextCommit::T
 	if (Method == ETextCommit::OnEnter) {
 		int value = UUtility::GetIntFromFText(Text);
 		BoxNesting->BoxDistance = isnan((double)value) ? BoxNesting->BoxDistance : value;
-		BoxMargin->SetText(FText::AsNumber(BoxNesting->BoxDistance));
 		if (AutoCheckBox && AutoCheckBox->IsChecked()) BoxNesting->NestBoxes();
 	}
 }

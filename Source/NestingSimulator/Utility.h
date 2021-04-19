@@ -16,4 +16,5 @@ class NESTINGSIMULATOR_API UUtility : public UObject
 	
 public:
 	static int GetIntFromFText(const FText& Text);
+	static int GetIntFromFText(const FString& Text);
 };

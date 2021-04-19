@@ -81,7 +81,15 @@ public:
 
 	// Box
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoxMin;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
+		class UEditableText* BoxMax;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Widget")
 		class UEditableText* BoxMargin;
+	UFUNCTION()
+		void OnChangedBoxMin(const FText& Text, ETextCommit::Type Method);
+	UFUNCTION()
+		void OnChangedBoxMax(const FText& Text, ETextCommit::Type Method);
 	UFUNCTION()
 		void OnChangedBoxMargin(const FText& Text, ETextCommit::Type Method);
 

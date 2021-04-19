@@ -23,7 +23,7 @@ ANestingPawn::ANestingPawn()
 	SpringArm->SetupAttachment(Sphere);
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
-	SpringArm->TargetArmLength = 3000.0f;
+	SpringArm->TargetArmLength = DefaultTargetArmLength = 3000.0f;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
@@ -68,7 +68,11 @@ void ANestingPawn::MoveForward(float Value)
 	{
 		return;
 	}
-	AddMovementInput(RootComponent->GetForwardVector(), Value * MoveSpeed);
+
+	float addSpeed = pow(SpringArm->TargetArmLength / DefaultTargetArmLength, 3);
+	AddMovementInput(RootComponent->GetForwardVector(), Value * MoveSpeed * addSpeed);
+
+	UE_LOG(LogTemp, Warning, TEXT("speed: %f"), Value * MoveSpeed * addSpeed);
 }
 
 void ANestingPawn::MoveRight(float Value)
@@ -77,7 +81,10 @@ void ANestingPawn::MoveRight(float Value)
 	{
 		return;
 	}
-	AddMovementInput(RootComponent->GetRightVector(), Value * MoveSpeed);
+
+	float addSpeed = SpringArm->TargetArmLength / DefaultTargetArmLength;
+	AddMovementInput(RootComponent->GetRightVector(), Value * MoveSpeed * addSpeed);
+	
 }
 
 void ANestingPawn::TurnRight(float Value)

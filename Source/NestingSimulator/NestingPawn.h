@@ -64,4 +64,7 @@ public:
 	void CameraRotateAround();
 	void EndCameraRotating();
 	void SetStartTransform();
+
+private:
+	float DefaultTargetArmLength = 1;
 };
