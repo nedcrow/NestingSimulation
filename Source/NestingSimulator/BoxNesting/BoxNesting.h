@@ -14,7 +14,7 @@ enum class EBoxAlign : uint8 {
 };
 
 USTRUCT(Atomic, BlueprintType)
-struct FRowStruct {
+struct FBoxRowStruct {
 	GENERATED_BODY()
 
 	public:
@@ -22,11 +22,11 @@ struct FRowStruct {
 };
 
 USTRUCT(Atomic, BlueprintType)
-struct FBoardStruct {
+struct FBoxBoardStruct {
 	GENERATED_BODY()
 
 public:
-	TArray<FRowStruct> Matrix;
+	TArray<FBoxRowStruct> Matrix;
 	int EmptyArea;
 };
 
@@ -64,13 +64,11 @@ protected:
 	int CurrentTypeGroupIndex;
 	int BeforeStartPoint[2] = {0,0};
 	FVector2D BeforeBoxSize;
-	FBoardStruct BeforeBoard;
+	FBoxBoardStruct BeforeBoard;
 	TArray<FBoxListTableRow*> BoxArray;
 	TArray<FBoxGroup*> BoxGroups;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	void NestBoxes();
 	void CleanUpGarbageBoxes();
@@ -94,7 +92,7 @@ public:
 
 #pragma region Board
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
-	TArray<FBoardStruct> BoardStructArr;
+	TArray<FBoxBoardStruct> BoardStructArr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data_Board")
 	int32 BoardSizeX = 10;
@@ -148,5 +146,5 @@ private:
 	void ArrangeBoxes();
 	void NestOneArray(TArray<FBoxListTableRow*> Boxes, int StartBoardIndex);
 	void DrawFilteredBox();
-	int GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoardStruct _Board, int StartPoint[2]);
+	int GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoxBoardStruct _Board, int StartPoint[2]);
 };

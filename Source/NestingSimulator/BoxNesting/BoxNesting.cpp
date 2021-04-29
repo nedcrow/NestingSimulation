@@ -2,13 +2,13 @@
 
 
 #include "BoxNesting.h"
+#include "BoxDataTable.h"
 #include "../TileBase.h"
 #include "../NestingGS.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/DataTable.h"
-#include "BoxDataTable.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -43,12 +43,6 @@ void ABoxNesting::BeginPlay()
 	NestBoxes();
 }
 
-// Called every frame
-void ABoxNesting::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 void ABoxNesting::NestBoxes()
 {
@@ -121,8 +115,8 @@ void ABoxNesting::CreateBoard(int _BoardSizeX, int _BoardSizeY) {
 	));
 
 	// Board Struct - All space is 1(false) in matrix
-	FRowStruct Row = FRowStruct();
-	FBoardStruct Board = FBoardStruct();
+	FBoxRowStruct Row = FBoxRowStruct();
+	FBoxBoardStruct Board = FBoxBoardStruct();
 
 	Row.RowArr.Init(1, _BoardSizeX);
 	Board.Matrix.Init(Row, _BoardSizeY);
@@ -238,7 +232,7 @@ void ABoxNesting::NestOneArray(TArray<FBoxListTableRow*> Boxes, int StartBoardIn
 
 		// 첫 보드부터 탐색 
 		for (int j = StartBoardIndex; j < BoardStructArr.Num(); j++) {
-			FBoardStruct board = BoardStructArr[j];
+			FBoxBoardStruct board = BoardStructArr[j];
 
 			// 마지막 보드의 공백 영역이 박스 사이즈보다 작으면 자리확인 종료
 			int boxArea = Boxes[i]->SizeX * Boxes[i]->SizeY;
@@ -408,7 +402,7 @@ void ABoxNesting::DrawFilteredBox()
 }
 
 /*  보드 폭(길이)가 짧고 시작점이 false(1)이면 -1 리턴, 시작점이 true면 0 리턴, 이 외에는 찾은 false만큼 리턴 */
-int ABoxNesting::GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoardStruct _Board, int StartPoint[2])
+int ABoxNesting::GetFalseAreaInBoard(int BoxSizeX, int BoxSizeY, FBoxBoardStruct _Board, int StartPoint[2])
 {
 	int xIndex = eAlign == EBoxAlign::E_Top ? 0 : 1;
 	int yIndex = eAlign == EBoxAlign::E_Top ? 1 : 0;
