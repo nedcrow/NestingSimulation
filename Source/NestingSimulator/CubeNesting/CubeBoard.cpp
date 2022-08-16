@@ -25,7 +25,7 @@ ACubeBoard::ACubeBoard()
 void ACubeBoard::BeginPlay()
 {
 	Super::BeginPlay();
-	//SetBoardSize(FVector(20,12,10)); // Test
+	SetBoardSize(FVector(20,12,10)); // Test
 }
 
 void ACubeBoard::SetBoardSize(FVector Size)
@@ -62,6 +62,7 @@ void ACubeBoard::SetBoardSize(FVector Size)
 				scale
 			));
 		}
+		UE_LOG(LogTemp,Warning,TEXT("begin play"));
 	}	
 }
 

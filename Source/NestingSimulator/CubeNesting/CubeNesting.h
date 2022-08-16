@@ -53,6 +53,7 @@ protected:
 	TArray<ACubeBoard*> CubeBoardArray;
 	TArray<FVector> CubeColorArray;
 	TArray<FCubeGroup*> CubeGroups;
+	TArray<FCubeListTableRow*> CubeDataArr;
 
 public:	
 
@@ -131,7 +132,7 @@ public:
 		TArray<ATileBase*> CubeActorArr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
-		TArray<AActor*> GarbageBoxActorArr;
+		TArray<AActor*> GarbageCubeActorArr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data_Box")
 		TArray<int> FilteredCubeIndexes;
@@ -147,6 +148,6 @@ public:
 private:
 	void AddBoard();
 	void ArrangeCubes();
-	void NestOneArray(TArray<FCubeListTableRow>, int StartBoardIndex);
+	void NestOneArray(TArray<FCubeListTableRow*>, int StartBoardIndex);
 	void DrawFilteredCube(); 
 };

@@ -39,11 +39,28 @@ void ACubeNesting::NestCubes()
 {
 	CleanUpGarbageCubes();
 	ResetUnit();
+
+	if (CubeDataTable != nullptr) {
+		ArrangeCubes();
+		NestOneArray(CubeDataArr, 0);
+	}
 }
 
 void ACubeNesting::CleanUpGarbageCubes()
 {
 	// Actor
+	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), ATileBase::StaticClass(), "Tile", GarbageCubeActorArr);
+	for (int i = GarbageCubeActorArr.Num() - 1; i >= 0; i--) {
+		if (!GarbageCubeActorArr[i]->IsPendingKill()) GarbageCubeActorArr[i]->Destroy();
+	}
+	GarbageCubeActorArr.Empty();
+	CubeActorArr.Empty();
+
+	// CubeBoard
+	for (auto cubeBoard : CubeBoardArray) {
+		cubeBoard->BoardISM->ClearInstances();
+	}
+
 	// Struct & ETC
 }
 
@@ -74,16 +91,30 @@ void ACubeNesting::AddBoard()
 
 void ACubeNesting::ArrangeCubes()
 {
-	/* Sort : 방향 통일, UnWeightBais 옵션 하나라도 true면 무게 정렬, 아니면 크기 순 */
+	if (CubeDataTable != nullptr) {
+		/* Sort : 방향 통일, UnWeightBais 옵션 하나라도 true면 무게 정렬, 아니면 크기 순 */
+		CubeDataArr.Empty();
+		FString context;
+		CubeDataTable->GetAllRows(context, CubeDataArr);
+		CubeDataArr.Sort([](FCubeListTableRow a, FCubeListTableRow b){return a.SizeX * a.SizeY* a.SizeZ > b.SizeX* b.SizeY* b.SizeZ;});
 
-	// Filer
+		// Filer
+		for (int i = 0; i < CubeDataArr.Num(); i++)
+		{
+			bool isFiltered = CubeDataArr[i]->SizeX < FilterSizeMin || CubeDataArr[i]->SizeX > FilterSizeMax ||
+				CubeDataArr[i]->SizeY < FilterSizeMin || CubeDataArr[i]->SizeY > FilterSizeMax ||
+				CubeDataArr[i]->SizeZ < FilterSizeMin || CubeDataArr[i]->SizeZ > FilterSizeMax; // || 보드 크기추가해야함
+			if (isFiltered) {
+			FilteredCubeIndexes.Add(i);
+			}
+		}
+		// 그룹 - 타입 옵션 false면 한 그룹
 
-	// 그룹 - 타입 옵션 false면 한 그룹
-
-	// 컬러값 - 컬러 옵션에 맞춰서..
+		// 컬러값 - 컬러 옵션에 맞춰서..
+	}
 }
 
-void ACubeNesting::NestOneArray(TArray<FCubeListTableRow>, int StartBoardIndex)
+void ACubeNesting::NestOneArray(TArray<FCubeListTableRow*>, int StartBoardIndex)
 {
 }
 
